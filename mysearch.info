@@ -1,0 +1,4 @@
+name = My Search
+description = Provides nodes search by argument in url
+core = 7.x
+version = 7.x-1.0

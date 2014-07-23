@@ -1,0 +1,70 @@
+<?php
+/**
+ * Implements hook_permission().
+ */
+function mysearch_permission() {
+  return array(
+    'access my search' => array(
+      'title' => t('Access My Search'),
+      'description' => t('Allows a user to access search results'),
+    )
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function mysearch_menu() {
+  $items['mysearch/%'] = array(
+    'title' => 'Search',
+    'page callback' => 'mysearch_searchpage',
+    'page arguments' => array(1),
+    'access arguments' => array('access my search'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Menu callback provides a simple list of nodes matching the
+ * search term "example": hitting the URL:
+ *   http://domain.com/mysearch/example
+ *
+ * Returns a list of links to nodes which have the word
+ * example in them.
+ */
+function mysearch_searchpage($keyword) {
+  $result = mysearch_search_result($keyword);
+  $items = array();
+
+  drupal_set_title(t('Search results for @keyword', array('@keyword' => $keyword)));
+
+  foreach ($result as $node) {
+    $items[] = array(
+      'data' => l($node->title, 'node/' . $node->nid),
+    );
+  }
+
+  if (empty($items)) {
+    $content = t('No results for this query.');
+  }
+  else {
+    $content = theme('item_list', array(
+      'items' => $items));
+  }
+
+  return $content;
+}
+
+/**
+ * Returns result for search query
+ */
+function mysearch_search_result($keyword = ''){
+  $query = db_select('node', 'n')
+    ->fields('n', array('nid', 'title'))
+    ->condition('status', NODE_PUBLISHED)
+    ->condition('n.title', '%' . db_like($keyword) . '%', 'LIKE')
+    ->execute();
+
+  return $query;
+}
